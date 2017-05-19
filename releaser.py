@@ -11,80 +11,80 @@ def load_config():
 
 	return config
 
-# 
-def get_boards(config):
-	return requests.get('http://' + config['jira_url'] + '/rest/agile/1.0/board', headers={'Authorization': 'Content ' + config['jira_auth']})
+# list_boards requests agile boards via JIRA API
+def list_boards(config):
+	# Make a request
+	r = requests.get(config['jira_protocol'] + '://' + config['jira_host'] + '/rest/agile/1.0/board', headers={'Authorization': 'Basic ' + config['jira_auth']})
 
-def get_board_sprints(config, boardid, opts):
+	# Encode response as json
+	j = json.loads(r.text)
+
+	# Return boards listed in values
+	return j['values']
+
+# list_board_sprints requests sprints in an agile board via JIRA API
+def list_board_sprints(config, boardid, opts):
 	# TODO: Default opts and check nulls
 	# TODO: Use opts in the request
 
-	return requests.get('http://' + config['jira_url'] + '/rest/agile/1.0/board/' + boardid + '/sprint?state=active', headers={'Authorization': 'Content ' + config['jira_auth']})
+	# Make a request
+	r = requests.get(config['jira_protocol'] + '://' + config['jira_host'] + '/rest/agile/1.0/board/' + boardid + '/sprint?state=active', headers={'Authorization': 'Basic ' + config['jira_auth']})
 
-def get_sprint_issues(config, boardid, sprintid, opts):
+	# Encode response as json
+	j = json.loads(r.text)
+
+	# Return sprints listed in values
+	return j['values']
+
+# list_sprint_issues requests issues in a sprint via JIRA API
+def list_sprint_issues(config, sprintid, opts):
 	# TODO: Default opts and check nulls
 	# TODO: Use opts in the request
 
-	return requests.get('http://' + config['jira_url'] + '/rest/agile/1.0/board/' + boardid + 'sprint/' + sprintid + '/issue', headers={'Authorization': 'Content ' + config['jira_auth']})
+	# Make a request
+	r = requests.get(config['jira_protocol'] + '://' + config['jira_host'] + '/rest/agile/1.0/sprint/' + sprintid + '/issue', headers={'Authorization': 'Basic ' + config['jira_auth']})
+
+	# Encode response as json
+	j = json.loads(r.text)
+
+	# Return issues
+	return j['issues']
 
 # Gentlemen, start your engines.
 print ("Hello world")
 
 # Load the config file
 config = load_config()
-print(config)
 
 # TODO: Add VPN support for intranet-hosted JIRA instances. Grr...
-boards = get_boards(config)
+# Get agile boards in the JIRA instance
+boards = list_boards(config)
 
 # Iterate over boards
-# for board in boards
-# 	# Get sprints in the board
-# 	sprints = get_board_sprints(config, board.id, {
-# 		"state": "active",
-# 	})
+for b in boards:
+	#
+	print('Board: ' + b['name'])
+	boardid = str(b['id'])
 
-# 	# Begin building release directory
+	# Get sprints in the board
+	sprints = list_board_sprints(config, boardid, {})
 
-# 	# Iterate over sprints
-# 	for sprint in sprints
-# 		# Get issues in the sprint
-# 		issues = get_sprint_issues(config, board.id, sprint.id, {
-# 			# ...
-# 		})
+	# Iterate over sprints
+	for s in sprints:
+		print('Sprint: ' + s['name'])
+		sprintid = str(s['id'])
 
-# 		#
+		# TODO: Begin building a release directory for the sprint
 
-	# Add any additional non-issue items to the directory
+		# Get issues in the sprint
+		issues = list_sprint_issues(config, sprintid, {})
+		print(issues)
 
-	# Publish the release directory
+		# Iterate over issues
+		for i in issues:
+			print('Issue: ' + i['key'])
+			print(i)
 
-#result = requests.get('http://' + config['jira_url'] + '/rest/agile/1.0/board', headers={'Authorization': 'Content ' + encoded})
+			# TODO: Add this issue to the release directory
 
-# Return all boards
-# url = 'http://JIRA_URL/rest/agile/1.0/board'
-
-# Example board in response:
-# {
-# "id": 72,
-# "self": "http://JIRA_URL/rest/agile/1.0/board/72",
-# "name": "Software Releases",
-# "type": "scrum"
-# },
-
-# Return all active sprints from a board
-# url = 'http://JIRA_URL/rest/agile/1.0/board/72/sprint?state=active'
-
-# Example sprint in response:
-# {
-# "id": 71,
-# "self": "http://JIRA_URL/rest/agile/1.0/sprint/71",
-# "state": "active",
-# "name": "5.18.17 Release Sprint",
-# "startDate": "2017-04-24T13:20:08.781-07:00",
-# "endDate": "2017-05-18T13:20:00.000-07:00",
-# "originBoardId": 72
-# }
-
-# Return all issues in a sprint
-# url = 'http://JIRA_URL/rest/agile/1.0/board/72/sprint/71/issue'
+		# TODO: Finalize and publish the release directory
