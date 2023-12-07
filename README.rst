@@ -29,5 +29,3 @@ Pipe dreams for the future
 - Pull actual code to stage in the release directory
 - Expose a web interface for the assigned release developer
 - Generate release documentation
-
-`Learn more <https://github.com/richard8thday/releaser>`_.
